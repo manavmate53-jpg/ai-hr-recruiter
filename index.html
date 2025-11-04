@@ -14,85 +14,67 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8f9fa;
             min-height: 100vh;
         }
         .btn { 
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
             border: none;
             cursor: pointer;
-            font-size: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 14px;
         }
         .btn-primary { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2563eb;
             color: white;
         }
         .btn-primary:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+            background: #1d4ed8;
         }
         .btn-secondary { 
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #2563eb;
+            border: 1px solid #e5e7eb;
         }
         .btn-secondary:hover { 
-            background: #f7f7ff;
-            transform: translateY(-1px);
+            background: #f9fafb;
         }
         .card { 
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            padding: 40px;
-            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
         }
         .input { 
             width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: #f9fafb;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
         }
         .input:focus { 
             outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .tab { 
-            padding: 14px 24px;
+            padding: 12px 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 12px 12px 0 0;
+            transition: all 0.2s ease;
             font-weight: 500;
+            color: #6b7280;
         }
         .tab:hover {
-            background: rgba(102, 126, 234, 0.05);
+            color: #2563eb;
         }
         .tab.active { 
-            background: white;
-            color: #667eea;
-            font-weight: 600;
-            border-bottom: 3px solid #667eea;
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
         }
     </style>
 </head>
@@ -265,97 +247,65 @@
         
         function LoginScreen() {
             return `
-                <div class="min-h-screen flex items-center justify-center p-4">
-                    <div class="card max-w-md w-full">
+                <div class="min-h-screen flex items-center justify-center p-4" style="background: white;">
+                    <div class="card max-w-md w-full" style="box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
                         <div class="text-center mb-8">
-                            <div class="inline-block p-4 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl mb-4">
-                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" class="text-purple-600"></path>
-                                </svg>
-                            </div>
-                            <h1 class="text-4xl font-bold gradient-text mb-3">AI HR Recruiter</h1>
-                            <p class="text-gray-500 text-lg">Automate bulk hiring with AI</p>
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">AI HR Recruiter</h1>
+                            <p class="text-gray-600 text-sm">Sign in to your account</p>
                         </div>
                         
                         ${state.showCreateAccount ? `
-                            <form onsubmit="handleCreateAccount(event)" class="space-y-5">
-                                <h2 class="text-2xl font-bold gradient-text mb-6">Create Account</h2>
+                            <form onsubmit="handleCreateAccount(event)" class="space-y-4">
+                                <h2 class="text-xl font-bold text-gray-900 mb-4">Create Account</h2>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-                                    <input type="text" id="new-username" class="input" placeholder="Choose a username" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <input type="text" id="new-username" class="input" placeholder="Enter username" required>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                                    <input type="email" id="new-email" class="input" placeholder="your@email.com" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" id="new-email" class="input" placeholder="your@company.com" required>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                                    <input type="password" id="new-password" class="input" placeholder="Create a strong password" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" id="new-password" class="input" placeholder="Enter password" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-full mt-6">
-                                    <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>
-                                    Create Account
-                                </button>
-                                <button type="button" onclick="state.showCreateAccount = false; render()" class="btn btn-secondary w-full">
-                                    <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
-                                    Back to Login
-                                </button>
+                                <button type="submit" class="btn btn-primary w-full mt-4">Create Account</button>
+                                <button type="button" onclick="state.showCreateAccount = false; render()" class="btn btn-secondary w-full">Back to Login</button>
                             </form>
                         ` : state.showForgotPassword ? `
-                            <form onsubmit="handleForgotPassword(event)" class="space-y-5">
-                                <h2 class="text-2xl font-bold gradient-text mb-6">Reset Password</h2>
+                            <form onsubmit="handleForgotPassword(event)" class="space-y-4">
+                                <h2 class="text-xl font-bold text-gray-900 mb-4">Reset Password</h2>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                                    <input type="email" id="reset-email" class="input" placeholder="your@email.com" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <input type="email" id="reset-email" class="input" placeholder="your@company.com" required>
                                 </div>
                                 <p class="text-sm text-gray-500">We'll send you a link to reset your password</p>
-                                <button type="submit" class="btn btn-primary w-full mt-6">
-                                    <i data-lucide="mail" class="w-4 h-4 inline mr-2"></i>
-                                    Send Reset Link
-                                </button>
-                                <button type="button" onclick="state.showForgotPassword = false; render()" class="btn btn-secondary w-full">
-                                    <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
-                                    Back to Login
-                                </button>
+                                <button type="submit" class="btn btn-primary w-full mt-4">Send Reset Link</button>
+                                <button type="button" onclick="state.showForgotPassword = false; render()" class="btn btn-secondary w-full">Back to Login</button>
                             </form>
                         ` : `
-                            <form onsubmit="handleLogin(event)" class="space-y-5">
+                            <form onsubmit="handleLogin(event)" class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-                                    <input type="text" id="username" class="input" placeholder="Enter your username" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <input type="text" id="username" class="input" placeholder="Enter username" required>
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-                                    <div class="relative">
-                                        <input type="password" id="password" class="input pr-12" placeholder="Enter your password" required>
-                                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
-                                            <i data-lucide="eye" class="w-5 h-5"></i>
-                                        </button>
-                                    </div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" id="password" class="input" placeholder="Enter password" required>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary w-full mt-6">
-                                    <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
-                                    Sign In
-                                </button>
+                                <button type="submit" class="btn btn-primary w-full mt-4">Sign In</button>
                             </form>
                             
-                            <div class="mt-6 flex justify-between items-center text-sm">
-                                <button onclick="state.showCreateAccount = true; render()" class="font-semibold text-purple-600 hover:text-purple-700 transition">
-                                    <i data-lucide="user-plus" class="w-4 h-4 inline mr-1"></i>
-                                    Create Account
-                                </button>
-                                <button onclick="state.showForgotPassword = true; render()" class="font-semibold text-purple-600 hover:text-purple-700 transition">
-                                    Forgot Password?
-                                </button>
+                            <div class="mt-4 flex justify-between items-center text-sm">
+                                <button onclick="state.showCreateAccount = true; render()" class="text-blue-600 hover:text-blue-700">Create Account</button>
+                                <button onclick="state.showForgotPassword = true; render()" class="text-blue-600 hover:text-blue-700">Forgot Password?</button>
                             </div>
                             
-                            <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
-                                <p class="text-sm text-gray-600 text-center">
-                                    <span class="font-semibold text-purple-700">Demo Login:</span> 
-                                    <span class="font-mono bg-white px-2 py-1 rounded">admin</span> / 
-                                    <span class="font-mono bg-white px-2 py-1 rounded">admin123</span>
+                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                <p class="text-xs text-gray-500 text-center">
+                                    Demo: <span class="font-mono text-gray-700">admin</span> / <span class="font-mono text-gray-700">admin123</span>
                                 </p>
                             </div>
                         `}
@@ -366,30 +316,15 @@
 
         function Header() {
             return `
-                <header class="bg-white shadow-lg border-b border-gray-100">
-                    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <div class="p-2 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl">
-                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h1 class="text-2xl font-bold gradient-text">AI HR Recruiter</h1>
-                                <p class="text-sm text-gray-500">Bulk Hiring Automation</p>
-                            </div>
+                <header class="bg-white border-b border-gray-200">
+                    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">AI HR Recruiter</h1>
+                            <p class="text-xs text-gray-500">Bulk Hiring Automation</p>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="px-4 py-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
-                                <span class="text-sm font-semibold text-purple-700">
-                                    <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
-                                    ${state.user?.username || 'User'}
-                                </span>
-                            </div>
-                            <button onclick="logout()" class="btn btn-secondary">
-                                <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
-                                Logout
-                            </button>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600">${state.user?.username || 'User'}</span>
+                            <button onclick="logout()" class="btn btn-secondary text-sm">Logout</button>
                         </div>
                     </div>
                 </header>
@@ -771,7 +706,7 @@ HR Team`;
             
             if (!state.user) {
                 app.innerHTML = LoginScreen();
-                document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                document.body.style.background = 'white';
             } else {
                 let content = '';
                 if (state.currentTab === 'upload') content = UploadTab();
@@ -779,8 +714,8 @@ HR Team`;
                 else if (state.currentTab === 'messages') content = MessagesTab();
                 else if (state.currentTab === 'settings') content = SettingsTab();
                 
-                document.body.style.background = '#f3f4f6';
-                app.innerHTML = Header() + Tabs() + `<div class="bg-gray-100 min-h-screen">${content}</div>`;
+                document.body.style.background = '#f8f9fa';
+                app.innerHTML = Header() + Tabs() + `<div class="min-h-screen" style="background: #f8f9fa;">${content}</div>`;
             }
             
             // Initialize Lucide icons
