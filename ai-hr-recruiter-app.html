@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI HR Recruiter - Bulk Hiring Automation</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .btn { @apply px-4 py-2 rounded-lg font-medium transition-all; }
+        .btn-primary { @apply bg-blue-600 text-white hover:bg-blue-700; }
+        .btn-secondary { @apply bg-gray-200 text-gray-800 hover:bg-gray-300; }
+        .card { @apply bg-white rounded-lg shadow-md p-6; }
+        .input { @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent; }
+        .tab { @apply px-4 py-2 cursor-pointer transition-all; }
+        .tab.active { @apply border-b-2 border-blue-600 text-blue-600 font-medium; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app"></div>
+
+    <script>
+        // ============= CONFIGURATION =============
+        const API_URL = 'http://127.0.0.1:5000'; // Change to Railway URL after deployment
+        
+        // ============= STATE MANAGEMENT =============
+        let state = {
+            user: null,
+            currentTab: 'upload',
+            candidates: [],
+            messages: [],
+            jobSettings: {},
+            loading: false
+        };
+
+        // ============= API FUNCTIONS =============
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function login(username, password) {
+            const result = await apiCall('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            if (result.success) {
+                state.user = result.user;
+                render();
+            }
+            return result;
+        }
+
+        async function logout() {
+            await apiCall('/api/logout', { method: 'POST' });
+            state.user = null;
+            render();
+        }
+
+        async function uploadResume(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`${API_URL}/api/upload-resume`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+            return await response.json();
+        }
+
+        async function saveCandidate(candidate) {
+            return await apiCall('/api/save-candidate', {
+                method: 'POST',
+                body: JSON.stringify({ candidate })
+            });
+        }
+
+        async function fetchCandidates() {
+            const result = await apiCall('/api/candidates');
+            if (result.success) {
+                state.candidates = result.candidates;
+                render();
+            }
+        }
+
+        async function sendMessage(data) {
+            return await apiCall('/api/send-message', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        }
+
+        async function fetchMessages() {
+            const result = await apiCall('/api/message-log');
+            if (result.success) {
+                state.messages = result.messages;
+                render();
+            }
+        }
+
+        // ============= UI COMPONENTS =============
+        
+        function LoginScreen() {
+            return `
+                <div class="min-h-screen flex items-center justify-center p-4">
+                    <div class="card max-w-md w-full">
+                        <div class="text-center mb-6">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">🤖 AI HR Recruiter</h1>
+                            <p class="text-gray-600">Automate bulk hiring with AI</p>
+                        </div>
+                        
+                        <form onsubmit="handleLogin(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input type="text" id="username" class="input" placeholder="admin" required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="password" class="input pr-10" placeholder="admin123" required>
+                                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-gray-500">
+                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-full">
+                                <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>
+                                Login
+                            </button>
+                        </form>
+                        
+                        <div class="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
+                            <strong>Demo Login:</strong> admin / admin123
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function Header() {
+            return `
+                <header class="bg-white shadow-sm">
+                    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">🤖 AI HR Recruiter</h1>
+                            <p class="text-sm text-gray-600">Bulk Hiring Automation</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm text-gray-600">👤 ${state.user?.username || 'User'}</span>
+                            <button onclick="logout()" class="btn btn-secondary text-sm">
+                                <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </header>
+            `;
+        }
+
+        function Tabs() {
+            const tabs = [
+                { id: 'upload', label: 'Upload Resume', icon: 'upload' },
+                { id: 'candidates', label: 'Candidates', icon: 'users' },
+                { id: 'messages', label: 'Messages', icon: 'mail' },
+                { id: 'settings', label: 'Job Settings', icon: 'settings' }
+            ];
+            
+            return `
+                <div class="bg-white border-b">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex gap-2">
+                            ${tabs.map(tab => `
+                                <button onclick="switchTab('${tab.id}')" class="tab ${state.currentTab === tab.id ? 'active' : ''}">
+                                    <i data-lucide="${tab.icon}" class="w-4 h-4 inline mr-2"></i>
+                                    ${tab.label}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function UploadTab() {
+            return `
+                <div class="max-w-4xl mx-auto p-6">
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4">📄 Upload Resume</h2>
+                        
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <input type="file" id="resumeFile" accept=".png,.jpg,.jpeg,.pdf" class="hidden" onchange="handleFileUpload(event)">
+                            <label for="resumeFile" class="cursor-pointer">
+                                <i data-lucide="upload-cloud" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                                <p class="text-lg font-medium text-gray-700">Click to upload or drag and drop</p>
+                                <p class="text-sm text-gray-500 mt-2">PNG, JPG, JPEG or PDF (Max 10MB)</p>
+                            </label>
+                        </div>
+                        
+                        <div id="candidateForm" class="hidden mt-6 space-y-4">
+                            <h3 class="font-bold text-lg">Extracted Candidate Details</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Name</label>
+                                    <input type="text" id="name" class="input" placeholder="Optional">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Email *</label>
+                                    <input type="email" id="email" class="input" placeholder="Required" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Phone *</label>
+                                    <input type="tel" id="phone" class="input" placeholder="Required" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Location *</label>
+                                    <input type="text" id="location" class="input" placeholder="Required" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Date of Birth</label>
+                                    <input type="date" id="dob" class="input">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Skills</label>
+                                    <input type="text" id="skills" class="input" placeholder="Optional">
+                                </div>
+                            </div>
+                            
+                            <button onclick="handleSaveCandidate()" class="btn btn-primary">
+                                <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                                Save Candidate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function CandidatesTab() {
+            return `
+                <div class="max-w-7xl mx-auto p-6">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold">👥 Candidate Management</h2>
+                            <div class="flex gap-2">
+                                <button onclick="sendToAll()" class="btn btn-primary text-sm">
+                                    <i data-lucide="mail" class="w-4 h-4 inline mr-2"></i>
+                                    Send to All (${state.candidates.length})
+                                </button>
+                                <button onclick="fetchCandidates()" class="btn btn-secondary text-sm">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        
+                        ${state.candidates.length === 0 ? `
+                            <div class="text-center py-12 text-gray-500">
+                                <i data-lucide="users" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                                <p>No candidates found. Upload a resume to get started.</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${state.candidates.map(candidate => `
+                                    <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <h3 class="font-bold text-lg">${candidate.name || 'Unknown'}</h3>
+                                                <div class="grid grid-cols-2 gap-2 mt-2 text-sm text-gray-600">
+                                                    <p><strong>Email:</strong> ${candidate.email}</p>
+                                                    <p><strong>Phone:</strong> ${candidate.phone}</p>
+                                                    <p><strong>Location:</strong> ${candidate.location}</p>
+                                                    <p><strong>Code:</strong> ${candidate.code}</p>
+                                                    <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-xs ${
+                                                        candidate.status === 'New' ? 'bg-gray-100' :
+                                                        candidate.status === 'Contacted' ? 'bg-blue-100' :
+                                                        candidate.status === 'Interview Scheduled' ? 'bg-green-100' :
+                                                        'bg-red-100'
+                                                    }">${candidate.status}</span></p>
+                                                </div>
+                                            </div>
+                                            <button onclick="sendMessageToCandidate(${candidate.id}, '${candidate.email}', '${candidate.phone}', '${candidate.name}', '${candidate.code}', '${candidate.location}')" class="btn btn-primary text-sm">
+                                                <i data-lucide="mail" class="w-4 h-4 inline mr-1"></i>
+                                                Send Message
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function MessagesTab() {
+            return `
+                <div class="max-w-7xl mx-auto p-6">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold">📧 Messages Log</h2>
+                            <button onclick="fetchMessages()" class="btn btn-secondary text-sm">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                                Refresh
+                            </button>
+                        </div>
+                        
+                        ${state.messages.length === 0 ? `
+                            <div class="text-center py-12 text-gray-500">
+                                <i data-lucide="mail" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                                <p>No messages sent yet.</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${state.messages.map(msg => `
+                                    <div class="border rounded-lg p-4">
+                                        <div class="flex items-start gap-3">
+                                            <div class="p-2 rounded-lg ${msg.type === 'email' ? 'bg-blue-100' : 'bg-green-100'}">
+                                                <i data-lucide="${msg.type === 'email' ? 'mail' : 'message-square'}" class="w-5 h-5"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <span class="font-medium">${msg.type.toUpperCase()}</span>
+                                                        <span class="text-xs text-gray-500 ml-2">${msg.timestamp}</span>
+                                                    </div>
+                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Simulated</span>
+                                                </div>
+                                                <p class="text-sm text-gray-600"><strong>To:</strong> ${msg.to}</p>
+                                                ${msg.subject ? `<p class="text-sm text-gray-600"><strong>Subject:</strong> ${msg.subject}</p>` : ''}
+                                                <p class="text-sm text-gray-700 mt-2 whitespace-pre-wrap">${msg.message}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function SettingsTab() {
+            return `
+                <div class="max-w-4xl mx-auto p-6">
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4">⚙️ Job Settings</h2>
+                        <p class="text-gray-600 mb-6">Configure job details for candidate communication</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Job Title</label>
+                                <input type="text" id="jobTitle" class="input" placeholder="e.g., Software Engineer">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Company Name</label>
+                                <input type="text" id="companyName" class="input" placeholder="e.g., Tech Corp">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Location</label>
+                                <input type="text" id="jobLocation" class="input" placeholder="e.g., Mumbai, India">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Salary Range</label>
+                                <input type="text" id="salaryRange" class="input" placeholder="e.g., ₹8-12 LPA">
+                            </div>
+                            
+                            <button onclick="saveJobSettings()" class="btn btn-primary">
+                                <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                                Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============= EVENT HANDLERS =============
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const result = await login(username, password);
+            if (!result.success) {
+                alert('Login failed: ' + (result.error || 'Invalid credentials'));
+            }
+        }
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const result = await uploadResume(file);
+            if (result.success) {
+                const candidate = result.candidate;
+                document.getElementById('name').value = candidate.name || '';
+                document.getElementById('email').value = candidate.email || '';
+                document.getElementById('phone').value = candidate.phone || '';
+                document.getElementById('location').value = candidate.location || '';
+                document.getElementById('dob').value = candidate.dob || '';
+                document.getElementById('skills').value = candidate.skills || '';
+                
+                document.getElementById('candidateForm').classList.remove('hidden');
+            } else {
+                alert('Upload failed: ' + result.error);
+            }
+        }
+
+        async function handleSaveCandidate() {
+            const candidate = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                location: document.getElementById('location').value,
+                dob: document.getElementById('dob').value,
+                skills: document.getElementById('skills').value,
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            const result = await saveCandidate(candidate);
+            if (result.success) {
+                alert('✅ Candidate saved successfully!');
+                document.getElementById('candidateForm').classList.add('hidden');
+                document.getElementById('resumeFile').value = '';
+                switchTab('candidates');
+                fetchCandidates();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        }
+
+        async function sendMessageToCandidate(id, email, phone, name, code, location) {
+            const message = `Hi ${name || 'there'},
+
+We found your profile suitable for a position at our company.
+
+Interview Details:
+Date: [To be scheduled]
+Time: [To be scheduled]
+Location: ${location}
+
+Your Candidate Code: ${code}
+
+Please confirm your availability.
+
+Best regards,
+HR Team`;
+
+            const result = await sendMessage({
+                candidate_id: id,
+                email: email,
+                phone: phone,
+                subject: 'Job Opportunity',
+                message: message,
+                send_email: true,
+                send_sms: true
+            });
+            
+            if (result.success) {
+                alert('✅ Message sent successfully! (Simulated in demo mode)');
+                fetchMessages();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        }
+
+        async function sendToAll() {
+            if (!confirm(`Send message to all ${state.candidates.length} candidate(s)?`)) return;
+            
+            let success = 0;
+            for (const candidate of state.candidates) {
+                const result = await sendMessageToCandidate(
+                    candidate.id, candidate.email, candidate.phone,
+                    candidate.name, candidate.code, candidate.location
+                );
+                if (result) success++;
+            }
+            
+            alert(`✅ Bulk messaging complete!\n\nSuccess: ${success}\n\n(Demo Mode - Messages simulated)`);
+            fetchCandidates();
+        }
+
+        function switchTab(tab) {
+            state.currentTab = tab;
+            render();
+            
+            if (tab === 'candidates') fetchCandidates();
+            if (tab === 'messages') fetchMessages();
+        }
+
+        // ============= RENDER FUNCTION =============
+        
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!state.user) {
+                app.innerHTML = LoginScreen();
+            } else {
+                let content = '';
+                if (state.currentTab === 'upload') content = UploadTab();
+                else if (state.currentTab === 'candidates') content = CandidatesTab();
+                else if (state.currentTab === 'messages') content = MessagesTab();
+                else if (state.currentTab === 'settings') content = SettingsTab();
+                
+                app.innerHTML = Header() + Tabs() + content;
+            }
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // ============= INITIALIZE APP =============
+        
+        window.onload = () => {
+            render();
+        };
+    </script>
+</body>
+</html>
