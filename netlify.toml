@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+  command = "echo 'No build needed'"
+
+[[redirects]]
+  from = "/*"
+  to = "/ai-hr-recruiter-app.html"
+  status = 200
